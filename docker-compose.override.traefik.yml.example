@@ -1,0 +1,22 @@
+services:
+  checkmk:
+    labels:
+      # Habilitar Traefik
+      - traefik.enable=true
+      
+      # Router HTTP (redirige a HTTPS)
+      - traefik.http.routers.checkmk-http.rule=Host(`${DOMAIN_HOST}`)
+      - traefik.http.routers.checkmk-http.entrypoints=web
+      - traefik.http.routers.checkmk-http.middlewares=redirect-to-https
+      
+      # Router HTTPS
+      - traefik.http.routers.checkmk.rule=Host(`${DOMAIN_HOST}`)
+      - traefik.http.routers.checkmk.entrypoints=websecure
+      - traefik.http.routers.checkmk.tls=true
+      - traefik.http.routers.checkmk.tls.certresolver=letsencrypt
+      - traefik.http.routers.checkmk.service=checkmk-svc
+      - traefik.http.services.checkmk-svc.loadbalancer.server.port=5000
+      
+      # Redirect middleware
+      - traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https
+      - traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true

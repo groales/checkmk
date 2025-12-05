@@ -1,0 +1,22 @@
+services:
+  checkmk:
+    container_name: checkmk
+    image: checkmk/check-mk-raw:latest
+    restart: unless-stopped
+    environment:
+      CMK_SITE_ID: ${CMK_SITE_ID:-monitoring}
+      CMK_PASSWORD: ${CMK_PASSWORD}
+    volumes:
+      - checkmk_data:/omd/sites
+    networks:
+      - proxy
+    tmpfs:
+      - /opt/omd/sites/${CMK_SITE_ID:-monitoring}/tmp:uid=1000,gid=1000
+
+volumes:
+  checkmk_data:
+    name: checkmk_data
+
+networks:
+  proxy:
+    external: true
