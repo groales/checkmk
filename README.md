@@ -73,6 +73,94 @@ DOMAIN_HOST=checkmk.tudominio.com
 
 ---
 
+## Despliegue con Docker CLI
+
+Si prefieres trabajar desde la línea de comandos:
+
+### 1. Clonar el repositorio
+
+```bash
+git clone https://git.ictiberia.com/groales/checkmk.git
+cd checkmk
+```
+
+### 2. Generar contraseña
+
+Contraseña para el usuario `cmkadmin`:
+
+```bash
+openssl rand -base64 32
+```
+
+### 3. Elegir modo de despliegue
+
+#### Opción A: Traefik (recomendado para producción)
+
+```bash
+cp docker-compose.override.traefik.yml.example docker-compose.override.yml
+cp .env.example .env
+nano .env  # Editar: pegar CMK_PASSWORD, configurar DOMAIN_HOST
+```
+
+#### Opción B: Nginx Proxy Manager
+
+```bash
+cp .env.example .env
+nano .env  # Editar: pegar CMK_PASSWORD, configurar DOMAIN_HOST
+```
+
+### 4. Iniciar el servicio
+
+```bash
+docker compose up -d
+```
+
+⏱️ La inicialización puede tardar **2-3 minutos** (creación del site, configuración OMD).
+
+### 5. Verificar el despliegue
+
+```bash
+# Ver logs en tiempo real
+docker compose logs -f checkmk
+
+# Verificar contenedores activos
+docker compose ps
+
+# Verificar estado del site CheckMK
+docker compose exec checkmk omd status
+
+# Listar sites disponibles
+docker compose exec checkmk omd sites
+```
+
+**Acceso**:
+- Traefik: `https://<DOMAIN_HOST>/monitoring/` (ejemplo: `https://checkmk.example.com/monitoring/`)
+- NPM: Configurar en NPM apuntando a `checkmk` puerto `5000` → `https://checkmk.example.com/monitoring/`
+
+⚠️ **IMPORTANTE**: El path `/monitoring/` es obligatorio (nombre del site CheckMK).
+
+**Credenciales iniciales**:
+- Usuario: `cmkadmin`
+- Contraseña: La configurada en `CMK_PASSWORD`
+
+### 6. Comandos OMD útiles
+
+```bash
+# Ver todos los servicios del site
+docker compose exec checkmk omd status
+
+# Reiniciar site
+docker compose exec checkmk omd restart
+
+# Backup manual
+docker compose exec checkmk omd backup /tmp/backup.tar.gz
+
+# Ver configuración del site
+docker compose exec checkmk omd config
+```
+
+---
+
 ## Modos de Despliegue
 
 ### Traefik (Proxy Inverso con SSL automático)
