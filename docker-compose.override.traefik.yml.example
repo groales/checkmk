@@ -6,5 +6,4 @@ services:
       - traefik.http.routers.checkmk.rule=Host(`${DOMAIN_HOST}`)
       - traefik.http.routers.checkmk.entrypoints=websecure
       - traefik.http.routers.checkmk.tls.certresolver=letsencrypt
-      - traefik.http.routers.checkmk.service=checkmk-svc
-      - traefik.http.services.checkmk-svc.loadbalancer.server.port=5000
+      - traefik.http.services.checkmk.loadbalancer.server.port=5000
