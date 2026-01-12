@@ -16,7 +16,7 @@ Sistema de monitorización IT profesional. Monitoriza servidores, aplicaciones, 
 ## Requisitos Previos
 
 - Docker Engine instalado
-- Portainer configurado (recomendado)
+- Docker Compose instalado
 - **Para Traefik o NPM**: Red Docker `proxy` creada
 - **Dominio configurado**: Para acceso HTTPS
 - **Contraseña generada**: CMK_PASSWORD
@@ -39,92 +39,113 @@ Guarda el resultado, lo necesitarás en el archivo `.env`.
 
 ---
 
-## Despliegue con Portainer
+## Archivos de este Repositorio
 
-### Opción A: Git Repository (Recomendada)
+Este repositorio contiene archivos de ejemplo:
+- `docker-compose.yml` - Configuración base del contenedor
+- `.env.example` - Plantilla de variables de entorno
+- `docker-compose.override.traefik.yml.example` - Labels para Traefik
+- `README.md` - Esta documentación
 
-1. En Portainer, ve a **Stacks** → **Add stack**
-2. Nombra el stack: `checkmk`
-3. Selecciona **Git Repository**
-4. Configura:
-   - **Repository URL**: `https://git.ictiberia.com/groales/checkmk`
-   - **Repository reference**: `refs/heads/main`
-   - **Compose path**: `docker-compose.yml`
-   - **GitOps updates**: Activado (opcional)
-5. **Solo para Traefik**: En **Additional paths**, añade:
-   - `docker-compose.override.traefik.yml.example`
-6. En **Environment variables**, añade:
-
-```env
-CMK_PASSWORD=tu_password_generado
-DOMAIN_HOST=checkmk.tudominio.com
-```
-
-7. Click en **Deploy the stack**
-
-### Opción B: Web editor
-
-1. En Portainer, ve a **Stacks** → **Add stack**
-2. Nombra el stack: `checkmk`
-3. Selecciona **Web editor**
-4. Pega el contenido de `docker-compose.yml`
-5. En **Environment variables**, añade las mismas variables que la Opción A
-6. Click en **Deploy the stack**
+> 💡 **Tip**: Puedes copiar estos archivos manualmente o clonar el repositorio.
 
 ---
 
-## Despliegue con Docker CLI
+## Despliegue con Docker Compose
 
-Si prefieres trabajar desde la línea de comandos:
-
-### 1. Clonar el repositorio
+### 1. Crear Directorio y Archivos
 
 ```bash
-git clone https://git.ictiberia.com/groales/checkmk.git
+# Crear directorio
+mkdir checkmk
 cd checkmk
 ```
 
-### 2. Generar contraseña
+### 2. Crear docker-compose.yml
 
-Contraseña para el usuario `cmkadmin`:
+Crea el archivo `docker-compose.yml`:
 
-```bash
-openssl rand -base64 32
+```yaml
+services:
+  checkmk:
+    container_name: checkmk
+    image: checkmk/check-mk-raw:latest
+    restart: unless-stopped
+    environment:
+      CMK_SITE_ID: ${CMK_SITE_ID:-monitoring}
+      CMK_PASSWORD: ${CMK_PASSWORD}
+    volumes:
+      - checkmk_data:/omd/sites
+    networks:
+      - proxy
+    tmpfs:
+      - /opt/omd/sites/${CMK_SITE_ID:-monitoring}/tmp:uid=1000,gid=1000
+
+volumes:
+  checkmk_data:
+
+networks:
+  proxy:
+    external: true
 ```
 
-### 3. Elegir modo de despliegue
+### 3. Configurar Variables de Entorno
 
-#### Opción A: Traefik (recomendado para producción)
+Crea el archivo `.env`:
 
-```bash
-cp docker-compose.override.traefik.yml.example docker-compose.override.yml
-cp .env.example .env
-nano .env  # Editar: pegar CMK_PASSWORD, configurar DOMAIN_HOST
+```env
+# Contraseña para cmkadmin (GENERAR NUEVA)
+# Generar con: openssl rand -base64 32
+CMK_PASSWORD='tu_password_generado'
+
+# Site ID (opcional)
+CMK_SITE_ID=monitoring
+
+# Dominio
+DOMAIN_HOST=checkmk.dominio.com
 ```
 
-#### Opción B: Nginx Proxy Manager
+> ⚠️ **Importante**: Usa comillas simples si la contraseña contiene caracteres especiales.
 
-```bash
-cp .env.example .env
-nano .env  # Editar: pegar CMK_PASSWORD, configurar DOMAIN_HOST
+### 4. (Opcional) Configurar Traefik
+
+Si usas Traefik, crea `docker-compose.override.yml`:
+
+```yaml
+services:
+  checkmk:
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.checkmk-http.rule=Host(`${DOMAIN_HOST}`)
+      - traefik.http.routers.checkmk-http.entrypoints=web
+      - traefik.http.routers.checkmk-http.middlewares=redirect-to-https
+      - traefik.http.routers.checkmk.rule=Host(`${DOMAIN_HOST}`)
+      - traefik.http.routers.checkmk.entrypoints=websecure
+      - traefik.http.routers.checkmk.tls.certresolver=letsencrypt
+      - traefik.http.services.checkmk.loadbalancer.server.port=5000
+      - traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https
 ```
 
-### 4. Iniciar el servicio
+### 5. Desplegar
 
 ```bash
+# Crear red proxy si no existe
+docker network create proxy
+
+# Iniciar servicios
 docker compose up -d
+
+# Ver logs
+docker compose logs -f checkmk
 ```
 
 ⏱️ La inicialización puede tardar **2-3 minutos** (creación del site, configuración OMD).
 
-### 5. Verificar el despliegue
+### 6. Verificar el Despliegue
 
 ```bash
 # Ver logs en tiempo real
 docker compose logs -f checkmk
-
-# Verificar contenedores activos
-docker compose ps
 
 # Verificar estado del site CheckMK
 docker compose exec checkmk omd status
@@ -143,7 +164,31 @@ docker compose exec checkmk omd sites
 - Usuario: `cmkadmin`
 - Contraseña: La configurada en `CMK_PASSWORD`
 
-### 6. Comandos OMD útiles
+---
+
+## Método Alternativo: Clonar desde Git
+
+Si prefieres usar Git para mantener la configuración actualizada:
+
+```bash
+# Clonar repositorio
+git clone https://git.ictiberia.com/groales/checkmk.git
+cd checkmk
+
+# Configurar variables de entorno
+cp .env.example .env
+nano .env  # Editar: CMK_PASSWORD, DOMAIN_HOST
+
+# (Opcional) Para Traefik
+cp docker-compose.override.traefik.yml.example docker-compose.override.yml
+
+# Desplegar
+docker compose up -d
+```
+
+---
+
+## Comandos OMD Útiles
 
 ```bash
 # Ver todos los servicios del site
