@@ -76,17 +76,18 @@ services:
       CMK_PASSWORD: ${CMK_PASSWORD}
     volumes:
       - checkmk_data:/omd/sites
-    networks:
-      - proxy
     tmpfs:
       - /opt/omd/sites/${CMK_SITE_ID:-monitoring}/tmp:uid=1000,gid=1000
 
 volumes:
   checkmk_data:
+    name: checkmk_data
 
+# añadir estas líneas al final del archivo para proxy inverso 
 networks:
-  proxy:
+  default:
     external: true
+    name: proxy
 ```
 
 ### 3. Configurar Variables de Entorno
