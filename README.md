@@ -42,7 +42,7 @@ Guarda el resultado, lo necesitarás en el archivo `.env`.
 ## Archivos de este Repositorio
 
 Este repositorio contiene archivos de ejemplo:
-- `docker-compose.yml` - Configuración base del contenedor
+- `compose.yaml` - Configuración base del contenedor
 - `.env.example` - Plantilla de variables de entorno
 - `docker-compose.override.traefik.yml.example` - Labels para Traefik
 - `README.md` - Esta documentación
@@ -61,9 +61,9 @@ mkdir checkmk
 cd checkmk
 ```
 
-### 2. Crear docker-compose.yml
+### 2. Crear compose.yaml
 
-Crea el archivo `docker-compose.yml`:
+Crea el archivo `compose.yaml`:
 
 ```yaml
 services:
@@ -110,7 +110,7 @@ DOMAIN_HOST=checkmk.dominio.com
 
 ### 4. (Opcional) Configurar Traefik
 
-Si usas Traefik, crea `docker-compose.override.yml`:
+Si usas Traefik, crea `compose.override.yaml`:
 
 ```yaml
 services:
@@ -181,7 +181,7 @@ cp .env.example .env
 nano .env  # Editar: CMK_PASSWORD, DOMAIN_HOST
 
 # (Opcional) Para Traefik
-cp docker-compose.override.traefik.yml.example docker-compose.override.yml
+cp docker-compose.override.traefik.yml.example compose.override.yaml
 
 # Desplegar
 docker compose up -d
@@ -229,7 +229,7 @@ Accede a `https://checkmk.tudominio.com`
 
 **Pasos**:
 
-1. Despliega el stack con el `docker-compose.yml` base (sin override)
+1. Despliega el stack con el `compose.yaml` base (sin override)
 
 2. En NPM, crea un nuevo **Proxy Host**:
    - **Domain Names**: `checkmk.tudominio.com`
