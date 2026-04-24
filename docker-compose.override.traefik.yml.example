@@ -1,9 +1,0 @@
-services:
-  checkmk:
-    labels:
-      # Habilitar Traefik
-      - traefik.enable=true
-      - traefik.http.routers.checkmk.rule=Host(`${DOMAIN_HOST}`)
-      - traefik.http.routers.checkmk.entrypoints=websecure
-      - traefik.http.routers.checkmk.tls.certresolver=letsencrypt
-      - traefik.http.services.checkmk.loadbalancer.server.port=5000

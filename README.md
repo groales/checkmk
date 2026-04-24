@@ -17,7 +17,6 @@ Sistema de monitorización IT profesional. Monitoriza servidores, aplicaciones, 
 
 - Docker Engine instalado
 - Docker Compose instalado
-- **Para Traefik o NPM**: Red Docker `proxy` creada
 - **Dominio configurado**: Para acceso HTTPS
 - **Contraseña generada**: CMK_PASSWORD
 
@@ -44,7 +43,6 @@ Guarda el resultado, lo necesitarás en el archivo `.env`.
 Este repositorio contiene archivos de ejemplo:
 - `compose.yaml` - Configuración base del contenedor
 - `.env.example` - Plantilla de variables de entorno
-- `docker-compose.override.traefik.yml.example` - Labels para Traefik
 - `README.md` - Esta documentación
 
 > 💡 **Tip**: Puedes copiar estos archivos manualmente o clonar el repositorio.
@@ -108,23 +106,12 @@ DOMAIN_HOST=checkmk.dominio.com
 
 > ⚠️ **Importante**: Usa comillas simples si la contraseña contiene caracteres especiales.
 
-### 4. (Opcional) Configurar Traefik
 
-Si usas Traefik, crea `compose.override.yaml`:
 
 ```yaml
 services:
   checkmk:
     labels:
-      - traefik.enable=true
-      - traefik.http.routers.checkmk-http.rule=Host(`${DOMAIN_HOST}`)
-      - traefik.http.routers.checkmk-http.entrypoints=web
-      - traefik.http.routers.checkmk-http.middlewares=redirect-to-https
-      - traefik.http.routers.checkmk.rule=Host(`${DOMAIN_HOST}`)
-      - traefik.http.routers.checkmk.entrypoints=websecure
-      - traefik.http.routers.checkmk.tls.certresolver=letsencrypt
-      - traefik.http.services.checkmk.loadbalancer.server.port=5000
-      - traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https
 ```
 
 ### 5. Desplegar
@@ -156,8 +143,6 @@ docker compose exec checkmk omd sites
 ```
 
 **Acceso**:
-- Traefik: `https://<DOMAIN_HOST>/monitoring/` (ejemplo: `https://checkmk.example.com/monitoring/`)
-- NPM: Configurar en NPM apuntando a `checkmk` puerto `5000` → `https://checkmk.example.com/monitoring/`
 
 ⚠️ **IMPORTANTE**: El path `/monitoring/` es obligatorio (nombre del site CheckMK).
 
@@ -180,8 +165,6 @@ cd checkmk
 cp .env.example .env
 nano .env  # Editar: CMK_PASSWORD, DOMAIN_HOST
 
-# (Opcional) Para Traefik
-cp docker-compose.override.traefik.yml.example compose.override.yaml
 
 # Desplegar
 docker compose up -d
@@ -209,10 +192,8 @@ docker compose exec checkmk omd config
 
 ## Modos de Despliegue
 
-### Traefik (Proxy Inverso con SSL automático)
 
 **Requisitos**:
-- Stack de Traefik desplegado
 - Red `proxy` creada
 - DNS apuntando al servidor
 
@@ -220,10 +201,8 @@ Si desplegaste con **Opción A (Git Repository)** y añadiste el override en el 
 
 Accede a `https://checkmk.tudominio.com`
 
-### Nginx Proxy Manager (NPM)
 
 **Requisitos**:
-- NPM desplegado y accesible
 - Red `proxy` creada
 - DNS apuntando al servidor
 
@@ -231,7 +210,6 @@ Accede a `https://checkmk.tudominio.com`
 
 1. Despliega el stack con el `compose.yaml` base (sin override)
 
-2. En NPM, crea un nuevo **Proxy Host**:
    - **Domain Names**: `checkmk.tudominio.com`
    - **Scheme**: `http`
    - **Forward Hostname / IP**: `checkmk`
