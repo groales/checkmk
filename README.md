@@ -2,6 +2,8 @@
 
 Sistema de monitorización IT profesional. Monitoriza servidores, aplicaciones, redes y servicios.
 
+> 📖 **Documentación oficial**: [Instalación en Docker](https://docs.checkmk.com/latest/en/introduction_docker.html)
+
 ## Características
 
 - 🖥️ **Monitorización completa**: Servidores, aplicaciones, red, cloud
@@ -73,13 +75,9 @@ services:
       CMK_SITE_ID: ${CMK_SITE_ID:-monitoring}
       CMK_PASSWORD: ${CMK_PASSWORD}
     volumes:
-      - checkmk_data:/omd/sites
+      - ./sites:/omd/sites
     tmpfs:
       - /opt/omd/sites/${CMK_SITE_ID:-monitoring}/tmp:uid=1000,gid=1000
-
-volumes:
-  checkmk_data:
-    name: checkmk_data
 
 # añadir estas líneas al final del archivo para proxy inverso 
 networks:
@@ -99,20 +97,11 @@ CMK_PASSWORD='tu_password_generado'
 
 # Site ID (opcional)
 CMK_SITE_ID=monitoring
-
-# Dominio
-DOMAIN_HOST=checkmk.dominio.com
 ```
 
 > ⚠️ **Importante**: Usa comillas simples si la contraseña contiene caracteres especiales.
 
 
-
-```yaml
-services:
-  checkmk:
-    labels:
-```
 
 ### 5. Desplegar
 
@@ -467,7 +456,6 @@ docker exec checkmk omd restore /tmp/backup.tar.gz
 | Variable | Descripción | Ejemplo |
 |----------|-------------|---------|
 | `CMK_PASSWORD` | Contraseña usuario cmkadmin | `generada_con_openssl` |
-| `DOMAIN_HOST` | Dominio completo | `checkmk.example.com` |
 
 ### Opcionales
 
@@ -479,6 +467,7 @@ docker exec checkmk omd restore /tmp/backup.tar.gz
 
 ## Recursos
 
+- [CheckMK Instalación en Docker (Documentación Oficial)](https://docs.checkmk.com/latest/en/introduction_docker.html)
 - [CheckMK Documentación Oficial](https://docs.checkmk.com/)
 - [CheckMK Docker Hub](https://hub.docker.com/r/checkmk/check-mk-raw)
 - [CheckMK Community](https://forum.checkmk.com/)
