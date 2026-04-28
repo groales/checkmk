@@ -10,7 +10,10 @@ services:
       - ./sites:/omd/sites
     tmpfs:
       - /opt/omd/sites/${CMK_SITE_ID:-monitoring}/tmp:uid=1000,gid=1000
-
+    #Puertos expuestos para acceso directo (opcional, se recomienda usar proxy inverso)  
+    #ports:
+    # - 5000:5000
+    
 # añadir estas líneas al final del archivo para proxy inverso 
 networks:
   default:
